@@ -14,25 +14,25 @@ const axiosInstance = axios.create({
 });
 
 // הוספת אינטרספטור לבקשות (requests)
-// axiosInstance.interceptors.request.use(
-//     function (config) {
+axiosInstance.interceptors.request.use(
+    function (config) {
 
-//          if (config.headers['adminToken']!==undefined) 
-//         {
-//             if (config.method?.toUpperCase() === 'GET' || config.method?.toUpperCase() === 'POST') {
-//                 const contentUrl = config.url?.toUpperCase().split('?CONTENT=')[1];
-//                 const hasParams = config.url && config.url.includes('?');
-//                 const separator = hasParams ? '&' : '?';
+         if (config.headers['adminToken']!==undefined) 
+        {
+            if (config.method?.toUpperCase() === 'GET' || config.method?.toUpperCase() === 'POST') {
+                const contentUrl = config.url?.toUpperCase().split('?CONTENT=')[1];
+                const hasParams = config.url && config.url.includes('?');
+                const separator = hasParams ? '&' : '?';
           
-//                 config.url = `${config.url}${separator}adminToken=${config.headers['adminToken']}`;
-//             }
-//         }
-//         return config;
-//     },
-//     function (error: any) {
-//         return Promise.reject(error);
-//     }
-// );
+                config.url = `${config.url}${separator}adminToken=${config.headers['adminToken']}`;
+            }
+        }
+        return config;
+    },
+    function (error: any) {
+        return Promise.reject(error);
+    }
+);
 
 
 
