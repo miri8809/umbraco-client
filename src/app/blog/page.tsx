@@ -1,23 +1,69 @@
+'use client'
+import { useState, useEffect } from "react";
+import { ContentService } from "@/services/content-service";
+import Link from "next/link";
 
-import { ContentService } from "@/services/contentService";
-import { Children } from "react";
+const DynamicPage: React.FC<{}> = () => {
+    const [pageIndex, setPageIndex] = useState(0);
+    const [posts, setPosts] = useState<any[]>([]);
+    const [error, setError] = useState<string | null>(null);
 
-export default async function DynamicPage() {
-    const result = await ContentService.getContent(language, props.params.args, addStartItemHeader ? currentRootUrl : null, adminToken);
-    const ancestors = await ContentService.getAncestors(language, props.params.args, addStartItemHeader ? currentRootUrl : null, adminToken);
-    var links: LinkModel[] = (ancestors.items ?? []).map((item: any) => {
-        return { url: item.route.path, target: '', title: item.properties.title ? item.properties.title : item.name }
-    })
-    if (result != undefined) {
-        const { contentType: pageType, properties: data } = result
+    useEffect(() => {
+        const fetchPosts = async () => {
+            try {
+                const result = await ContentService.getBlog(5, pageIndex);
+                if (result) {
+                    setPosts(result.items);
+                } else {
+                    setError("Failed to fetch content");
+                }
+            } catch (err) {
+                setError("Failed to fetch content");
+            }
+        };
 
-        if (data && pageType) {
+        fetchPosts();
+    }, [pageIndex]);
 
-
-            return (<>
-            </>
-            );
-        }
-        return <div>Unknown Page Type</div>
+    function stripHtml(html: string) {
+        const text = html.replace(/<[^>]*>/g, '');
+        return text;
     }
-}
+
+    const handleNextPage = () => {
+        setPageIndex((prevIndex) => prevIndex + 1);
+    };
+
+    const handlePreviousPage = () => {
+        setPageIndex((prevIndex) => Math.max(prevIndex - 1, 0));
+    };
+
+    if (error) {
+        return <p>Error: {error}</p>;
+    }
+
+    return (
+        <>
+            {posts.map((post: any, index: number) => {
+                let stripedText;
+                if (post.properties.bodyContent) {
+                    stripedText = stripHtml(post.properties.bodyContent.markup);
+                }
+                return (
+                    <Link href={'blog/' + post.id} key={index}>
+                        <h1>{post.properties.title}</h1>
+                        <div>
+                            {stripedText ? (stripedText.length > 200 ? stripedText.substring(0, 200) + '...' : stripedText) : ''}
+                        </div>
+                    </Link>
+                );
+            })}
+            <div>
+                <button onClick={handlePreviousPage} disabled={pageIndex === 0}>Previous</button>
+                <button onClick={handleNextPage}>Next</button>
+            </div>
+        </>
+    );
+};
+
+export default DynamicPage;
